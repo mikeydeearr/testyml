@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: 2010-09-09 
+Description: > 
+  This template is a parent of all future stack. 
+  
+Parameters:
+
+  OrgName:
+    Description: Please enter the Project Name
+    Type: String
+    Default: SEAOIL
+
+Metadata:
+
+  # Use for Parameter Groupings
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: General Details Related to Project and S3 Bucket
+        Parameters:
+          - OrgName
+    ParameterLabels:
+      OrgName:
+        default: "The name of the of the organization"
+
+Resources:
+
+#####################################################################################
+#
+#  SEAOIL EC2
+#
+#####################################################################################
+
+  Ec2test:
+    Type: AWS::CloudFormation::Stack
+    Properties:
+      TemplateURL: https://seaoil-infrastructure.s3-ap-southeast-1.amazonaws.com/CF/Oracle-EC2-NestedStack.yml
+      TimeoutInMinutes: 60
+      Parameters:
+#        ProjectName: !Ref OrgName
+        Environment: prod
+        # CidrBlock: 10.0.0.0/16
+        # CidrBits: "8"
+        # TaipanOfficeIP1: 222.127.140.200/29
+        # TaipanOfficeIP2: 121.58.242.56/29

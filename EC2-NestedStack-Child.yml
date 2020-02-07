@@ -1,0 +1,182 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: Test EC2 Instance
+
+Parameters:
+
+  ProjectName:
+    Description: Project name of the infrastructure
+    Type: String
+    Default: SEAOIL
+
+  Environment:
+    Description: Environment to deploy the Stack
+    Type: String
+    AllowedValues:
+      - Stage
+      - Prod
+      - Test
+      - Dev
+
+  ApplProdKey:
+    Description: Select the key name from the list.
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: seaoil_its_applprod_sg
+
+  OraprodKey:
+    Description: Select the key name from the list.
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: seaoil_its_oraprod_sg
+
+  HaproxyKey:
+    Description: Select the key name from the list.
+    Type: AWS::EC2::KeyPair::KeyName
+    Default: seaoil_haproxy
+    
+
+  As1InstanceType:
+    Description: Select instance type
+    Type: String
+    Default: c3.xlarge
+    AllowedValues: 
+        - c3.large
+        - c3.xlarge
+        - c3.2xlarge
+        - m3.medium
+
+  As2InstanceType:
+    Description: Select instance type
+    Type: String
+    Default: c3.large
+    AllowedValues: 
+        - c3.large
+        - c3.xlarge
+        - c3.2xlarge
+        - m3.medium
+
+  DBInstanceType:
+    Description: Select instance type
+    Type: String
+    Default: c3.2xlarge
+    AllowedValues: 
+        - c3.large
+        - c3.xlarge
+        - c3.2xlarge
+        - m3.medium
+
+  HpInstanceType:
+    Description: Select instance type
+    Type: String
+    Default: m3.medium
+    AllowedValues: 
+        - c3.large
+        - c3.xlarge
+        - c3.2xlarge
+        - m3.medium                  
+
+Resources:
+
+  AppsServer1:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-018c2a97b433db004
+      InstanceType: !Ref As1InstanceType
+      KeyName: !Ref ApplProdKey
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Fn::ImportValue: PrivateSecurityGroup
+          SubnetId: !Select
+            - 0
+            - !Split
+              - ","
+              - Fn::ImportValue:
+                  !Sub ${ProjectName}-${Environment}-PrivateSubnets     
+          PrivateIpAddress: 10.0.0.44
+      Tags: 
+        - Key: Name
+          Value: oracle_appserver1_prod
+        - Key: Environment
+          Value: Production
+
+  AppsServer2:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-00376a49b3fd40971
+      InstanceType: !Ref As2InstanceType
+      KeyName: !Ref ApplProdKey
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Fn::ImportValue: PrivateSecurityGroup
+          SubnetId: !Select
+            - 0
+            - !Split
+              - ","
+              - Fn::ImportValue:
+                  !Sub ${ProjectName}-${Environment}-PrivateSubnets     
+          PrivateIpAddress: 10.0.0.228
+      Tags: 
+        - Key: Name
+          Value: oracle_appserver2_prod
+        - Key: Environment
+          Value: Production
+
+  DBServer:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-05a65bccbee6f7f0d
+      InstanceType: !Ref DBInstanceType
+      KeyName: !Ref OraprodKey
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Fn::ImportValue: DBSecurityGroup
+          SubnetId: !Select
+            - 0
+            - !Split
+              - ","
+              - Fn::ImportValue:
+                  !Sub ${ProjectName}-${Environment}-DBSubnets 
+          PrivateIpAddress: 10.0.1.6
+      Tags: 
+        - Key: Name
+          Value: oracle_dbserver_prod
+        - Key: Environment
+          Value: Production
+
+  Haproxy:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0d72e880ac2d62926
+      InstanceType: !Ref HpInstanceType
+      KeyName: !Ref HaproxyKey
+      NetworkInterfaces: 
+        - AssociatePublicIpAddress: "true"
+          DeviceIndex: "0"
+          GroupSet: 
+            - Fn::ImportValue: PublicSecurityGroup
+          SubnetId: !Select
+            - 0
+            - !Split
+              - ","
+              - Fn::ImportValue:
+                  !Sub ${ProjectName}-${Environment}-PublicSubnets 
+          PrivateIpAddress: 10.0.2.151
+      Tags: 
+        - Key: Name
+          Value: oracle_haproxy_prod
+        - Key: Environment
+          Value: Production
+
+  # TestEIP:
+  #  Type: AWS::EC2::EIPAssociation
+  #  Properties: 
+  #  AllocationId: String
+  #     EIP: String
+  #     InstanceId: String
+  #     NetworkInterfaceId: String
+  #     PrivateIpAddress: String
+
